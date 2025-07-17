@@ -1,16 +1,15 @@
 package com.k02.recipe_platform.controller;
 
+import com.k02.recipe_platform.dto.AddIngredientDto;
 import com.k02.recipe_platform.dto.RecipeDto;
 import com.k02.recipe_platform.dto.RecipeResponseDto;
 import com.k02.recipe_platform.service.RecipeService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/recipes")
@@ -23,4 +22,13 @@ public class RecipeController {
         return recipeService.create(dto);
     }
 
+    @PostMapping("/{id}/ingredients/add")
+    public ResponseEntity<Void> addIngredient(
+            @PathVariable Long id,
+            @Validated @RequestBody AddIngredientDto dto
+            ){
+        recipeService.addIngredient(id, dto);
+
+        return ResponseEntity.ok().build();
+    }
 }

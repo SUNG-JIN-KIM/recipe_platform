@@ -1,14 +1,20 @@
 package com.k02.recipe_platform.service;
 
+import com.k02.recipe_platform.dto.AddIngredientDto;
 import com.k02.recipe_platform.dto.RecipeDto;
 import com.k02.recipe_platform.dto.RecipeResponseDto;
+import com.k02.recipe_platform.model.Ingredient;
 import com.k02.recipe_platform.model.Recipe;
+import com.k02.recipe_platform.model.RecipeIngredient;
+import com.k02.recipe_platform.model.RecipeIngredientId;
 import com.k02.recipe_platform.repository.IngredientRepository;
 import com.k02.recipe_platform.repository.RecipeIngredientRepository;
 import com.k02.recipe_platform.repository.RecipeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -24,5 +30,29 @@ public class RecipeService {
         recipe.setDescription(dto.getDescription());
         Recipe saved = recipeRepository.save(recipe);
         return new RecipeResponseDto(saved.getId(), saved.getTitle(), saved.getDescription());
+    }
+
+    public void addIngredient(Long recipeId, AddIngredientDto dto){
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new NoSuchElementException("레시피를 찾을 수 없습니다."));
+
+        Ingredient ingredient = ingredientRepository.findById(dto.getIngredientId())
+                .orElseThrow(() -> new NoSuchElementException("재료를 찾을 수 없습니다."));
+
+        RecipeIngredientId id = new RecipeIngredientId(recipeId, ingredient.getId());
+
+        if(recipeIngredientRepository.existsById(id)){
+            throw new IllegalStateException("이미 등록된 재료입니다.");
+        }
+
+        RecipeIngredient recipeIngredient = new RecipeIngredient();
+        recipeIngredient.setId(id);
+        recipeIngredient.setRecipe(recipe);
+        recipeIngredient.setIngredient(ingredient);
+        recipeIngredient.setQuantity(dto.getQuantity());
+
+        recipe.getRecipeIngredients().add(recipeIngredient);
+
+        recipeRepository.save(recipe);
     }
 }
